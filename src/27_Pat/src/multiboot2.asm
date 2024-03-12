@@ -9,7 +9,7 @@ header_start:
     dd header_end - header_start 	                                ; Header length
     dd 0x100000000 - (0xe85250d6 + 0 + (header_end - header_start)) ; Checksum
 
-;align 8 hei test virker det?
+;align 
 ;framebuffer_tag_start:
 ;    dw 5                                              ; type
 ;    dw 1                                              ; flags
