@@ -1,6 +1,6 @@
 {
     "cmake.buildDirectory": "$2024-ikt218-osdev/build/27_PAT",
-    "cmake.sourceDirectory": "$2024-ikt218-osdev}/src/27_PAT",
+    "cmake.sourceDirectory": "C:/Users/prebe/2024-ikt218-osdev/src/27_Pat",
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "cstddef": "cpp",
@@ -15,6 +15,7 @@
         "interrupts.h": "c",
         "memory.h": "c",
         "limits.h": "c"
-    }
+    },
+    "git.ignoreLimitWarning": true
 
 }
