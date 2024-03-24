@@ -18,5 +18,6 @@ void monitor_clear();
 // Output a null-terminated ASCII string to the monitor.
 void monitor_write(char *c);
 
+void printf(const char *format, ...); // Declaration of printf function
 
 #endif // MONITOR_H

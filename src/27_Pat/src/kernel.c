@@ -25,6 +25,26 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
 
     init_gdt();
     monitor_clear();
-    monitor_write("Hello, World!\n");
+    printf("Printing strings: \n");
+    printf("Hello, world!\n");
+    printf("This is a test.\n");
+    printf("\n");
+
+    printf("Printing integers: \n");
+    printf("Integer: %d\n", 123);
+    printf("Negative Integer: %d\n", -456);
+    printf("Zero: %d\n", 0);
+    printf("\n");
+
+    printf("Printing hexadecimal values: \n");
+    printf("Hexadecimal: %x\n", 0x1A);
+    printf("Another Hexadecimal: %x\n", 0xFF);
+    printf("Large Hexadecimal: %x\n", 0xABCD);
+    printf("\n");
+
+    int x = 10;
+    printf("Float: %f\n", 1.23);
+    printf("Character: %c\n", 'A');
+    printf("Address of x: %p\n", &x);
     return kernel_main();
 } 
