@@ -154,6 +154,14 @@ void int_to_string(int value, char *buffer, int base)
     }
 
     int i = 0;
+    // Check if the value is negative
+    if (value < 0) {
+        buffer[i++] = '-';
+        value = -value;
+    }
+    
+    int start = i; // Store the starting index of the number
+    
     while (value != 0)
     {
         int rem = value % base;
@@ -164,7 +172,7 @@ void int_to_string(int value, char *buffer, int base)
 
     // Reverse the string
     int len = i;
-    for (i = 0; i < len / 2; ++i)
+    for (i = start; i < len / 2; ++i)
     {
         char temp = buffer[i];
         buffer[i] = buffer[len - i - 1];
