@@ -1,6 +1,6 @@
 {
-    "cmake.buildDirectory": "${workspaceFolder}/build/27_Testp",
-    "cmake.sourceDirectory": "${workspaceFolder}/src/27_test",
+    "cmake.buildDirectory": "${workspaceFolder}/build/27_PAT",
+    "cmake.sourceDirectory": "${workspaceFolder}/src/27_PAT",
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "cstddef": "cpp",
