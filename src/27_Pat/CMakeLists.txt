@@ -1,142 +1,230 @@
 ########################################
-# The University of Agder Operating System: UiAOS
-# Languages: C, C++, and NASM Assembly
-# Tip: Use Ctrl+Shift+P in Visual Studio Code to get started with CMake.
+###
+### The University of Agder Operating System: UiAOS
+### We will be using C, C++ and NASM Assembly
+### Visual studio code: ctrl+shift+p to get started in CMake.
 ########################################
-
-# Skip compiler self-tests (saves time, avoids errors with some cross compilers)
+# These CMAKE flags makes the compiler skip self-tests.
+# (Saves time, and avoids error for some cross compilers)
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
-# Minimum required CMake version
+if(APPLE)
+    set(IS_MACOS "yes")
+endif()
+
+# These forces CMAKE to operate as we were using Linux.
+set(CMAKE_SYSTEM_NAME Linux)
+#set(CMAKE_SYSTEM_PROCESSOR i686)
+
+
+# This defines which is the lowest supported CMake version for this project
 cmake_minimum_required(VERSION 3.22.1)
 
-# Project name and languages used
+# This sets the name for our CMake project, and defines which languages we will be using.
 project(UiAOS LANGUAGES C CXX ASM_NASM)
 
-# Create a lock file to prevent parallel runs of CMake
+# This line creates a lock file to prevent parallell run of CMake.
 file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)
 
 ########################################
-# CMake: Import Plugins
+###
+### CMake: Import Plugins
+###
 ########################################
+# FetchContent is useful for when you wish to pull external projects / codebases. E.g., LUA, LIBC.
 include(FetchContent)
 
 ########################################
-# UiAOS: Variables
+###
+### UiAOS: Variables
+###
 ########################################
-set(OS_ARCH_TARGET "i386")  # x86_64 
+# Defines which architecture our operating system is using. We will be using i386, which is a 32-bit architecture
+set(OS_ARCH_TARGET i386)  # x86_64
+# The operating system name.
 set(OS_NAME "UiA Operating System")
-set(OS_KERNEL_NAME "uiaos")
-set(OS_KERNEL_BINARY "kernel.bin")
-set(OS_KERNEL_IMAGE "kernel.iso")
+# CMake target name for our operating system
+set(OS_KERNEL_NAME "uia-os")
+# Predefined list for our application targets
+set(OS_APPLICATIONS)
+# Predefined list for our libraries
+set(OS_LIBRARIES)
 
 ########################################
-# Compiler Configuration
+###
+### Compiler Configuration
+# We are using cross-compilation to ensure that the binary are compatible on other computers
+# Arch: yay -S i386-elf-gcc
+# Ubuntu: sudo apt -y install build-essential binutils gcc-multilib
 ########################################
+# Set the C++ Version
 set(CMAKE_CXX_STANDARD 20)
+# Set the C Version
 set(CMAKE_C_STANDARD 99)
-
-########################################
-# Assembly Configuration
-########################################
-set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS "s;S;asm")
-if(OS_ARCH_TARGET STREQUAL "i386")
-	set(CMAKE_ASM_NASM_OBJECT_FORMAT "elf32")
-elseif(OS_ARCH_TARGET STREQUAL "x86_64")
-	set(CMAKE_ASM_NASM_OBJECT_FORMAT "elf64")
+# GCC Warning Flags
+set(WARNING_FLAGS "-Wall -Wextra -Wshadow -Wno-sign-conversion -Wno-frame-address -Wno-unused-parameter")
+# Common compiler flags for both C and C++
+set(COMMON_COMPILER_FLAGS "-ffreestanding -O0 -g")
+# Common include paths for external libraries
+set(COMMON_INCLUDE_PATHS)
+# Conditional based on which architecture we are building. We should use -m32 for i386 and -m64 for x86_64
+if(OS_ARCH_TARGET STREQUAL i386)
+    set(COMMON_COMPILER_FLAGS "${COMMON_COMPILER_FLAGS} -m32")
+elseif(OS_ARCH_TARGET STREQUAL x86_64)
+    set(COMMON_COMPILER_FLAGS "${COMMON_COMPILER_FLAGS} -m64")
+else()
+    message(FATAL_ERROR "Could not find the specified OS architecture: ${OS_ARCH_TARGET}")
 endif()
-
-# Command to compile NASM files
-set(CMAKE_ASM_NASM_COMPILE_OBJECT 
-    "<CMAKE_ASM_NASM_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -f ${CMAKE_ASM_NASM_OBJECT_FORMAT} -o <OBJECT> <SOURCE>")
-
-########################################
-# OS Target
-########################################
-set(OS_KERNEL_LINKER "${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${OS_ARCH_TARGET}/linker.ld")
-
-# Add executable target for the kernel
-add_executable(uiaos-kernel 
-	src/multiboot2.asm # TODO: Add multiboot2 support
-    src/kernel.c
-	src/kernel.cpp
-	src/gdt.c
-	src/common.c
-	src/monitor.c
-	src/gdt.asm 
-)
-
-# Include directories for the kernel target
-target_include_directories(uiaos-kernel PUBLIC include)
+# Set C Compiler Flags
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMMON_COMPILER_FLAGS} ${WARNING_FLAGS}")
+# Set C++ Compiler Flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_COMPILER_FLAGS} ${WARNING_FLAGS} -fno-exceptions -fno-rtti")
+# Set NASM Compiler Flags
+set(CMAKE_ASM_NASM_FLAGS "${CMAKE_ASM_FLAGS} -g -O0")
 
 
-# Specify compile options for C and C++
-target_compile_options(uiaos-kernel PRIVATE
-    $<$<COMPILE_LANGUAGE:C>:-Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g>
-    $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -g>
-    $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-m32 -march=i386 -Wno-unused-variable -Wno-unused-parameter>
-)
 
-
-# Specify link options for C and C++
-target_link_options(uiaos-kernel PUBLIC
-    $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-ffreestanding -nostdlib -fno-builtin -static -pie -O0 -T${OS_KERNEL_LINKER} -g>
-)
-
-
-target_link_options(
-	uiaos-kernel
-	PUBLIC "-ffreestanding"
-	PUBLIC "-nostdlib"
-	PUBLIC "-static"
-	PUBLIC "-pie"
-	PUBLIC "-T${OS_KERNEL_LINKER}"
-)
-
-
-# Set properties for the kernel target
-set_target_properties(uiaos-kernel PROPERTIES
-    OUTPUT_NAME "${OS_KERNEL_BINARY}"
-    #LINK_FLAGS "${OS_KERNEL_LINK_FLAGS}"
-)
+# Set C++ Linker flags
+set(CXX_LINKER_FLAGS  "-nostdlib -ffreestanding")
+# Print out flags for the different compilers
+message("CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}")
+message("CMAKE_C_FLAGS=${CMAKE_C_FLAGS}")
+message("CMAKE_ASM_FLAGS=${CMAKE_ASM_FLAGS}")
 
 ########################################
-# Create Empty Fat32 Disk Image
+###
+### Assembly configuration
+# We use the nasm compiler
+# And we must set the correct elf format
 ########################################
-set(DISK_IMAGE "${CMAKE_CURRENT_BINARY_DIR}/disk.iso")
+# Specifies that .s and .S extension belongs to the ASM compiler
+set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS ${CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS} s S asm)
+# Conditional for setting object format to ELF32. Currently we only support elf32
+if(OS_ARCH_TARGET STREQUAL i386)
+    set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
+else()
+    message(FATAL_ERROR "Currently, we do not support other than elf32")
+endif()
+# Some CMake magic to get the NASM compiler working fine!
+set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -f ${CMAKE_ASM_NASM_OBJECT_FORMAT} -o <OBJECT> <SOURCE>")
 
-# Custom target to create an empty FAT32 disk image of 32MB
-add_custom_target(
-    create-fat32-disk
-    COMMAND dd if=/dev/zero of=${DISK_IMAGE} bs=1M count=32
-    COMMAND mkfs.fat -F 32 ${DISK_IMAGE}
-    VERBATIM
+########################################
+###
+### UiAOS Module: stdlib
+# The standard library for our operating system. It is some mutilated attempt at doing some libc implementation, but we probably void
+# all existing standards.
+########################################
+set(OS_MODULE_STDLIB_NAME ${OS_KERNEL_NAME}-module-stdlib)
+set(OS_MODULE_STDLIB_SOURCES
+        # C Libraries
+        src/stdlib/src/libc/panic.cpp
+        src/stdlib/src/libc/system.cpp
+        src/stdlib/src/libc/memory.cpp
+        src/stdlib/src/libc/string.cpp
+        src/stdlib/src/libc/stdio.cpp
+)
+add_library(${OS_MODULE_STDLIB_NAME} ${OS_MODULE_STDLIB_SOURCES})
+target_include_directories(${OS_MODULE_STDLIB_NAME} 
+    PUBLIC src/stdlib/include
+
+)
+target_link_libraries(${OS_MODULE_STDLIB_NAME} PUBLIC
+        ${OS_LIBRARIES}
+)
+set(OS_LIBRARIES ${OS_LIBRARIES} ${OS_MODULE_STDLIB_NAME})
+
+
+########################################
+###
+### UiAOS Module: Boot
+# The boot module takes care of booting the operating system
+# it is written in assembler language and does the following
+# 1. define the multiboot header variables
+# 2. define the multiboot header section.
+# 3. defines the .bss section. https://en.wikipedia.org/wiki/.bss
+# 4. defines the .text section (code segment) https://en.wikipedia.org/wiki/Code_segment
+# 5. defines the start routine which finally starts our kernel
+########################################
+# Currently, we only support x86 booting
+if(NOT OS_ARCH_TARGET STREQUAL "i386")
+    message(FATAL_ERROR "No boot definition exists for ${OS_ARCH_TARGET}")
+endif()
+# Sets the module name for the boot library
+set(OS_MODULE_BOOT_NAME ${OS_KERNEL_NAME}-boot)
+# Defines all source-files that are related to the bootloader
+set(OS_MODULE_BOOT_SOURCES
+        src/boot/src/boot.asm
+        src/boot/src/boot.cpp
+)
+# Creates a library for our multi-boot section
+add_library(${OS_MODULE_BOOT_NAME} ${OS_MODULE_BOOT_SOURCES})
+# Defines the include directories for the boot library
+target_include_directories(${OS_MODULE_BOOT_NAME} PUBLIC
+    src/boot/include/
+)
+# Defines the linking between boot and the boot library
+target_link_libraries(${OS_MODULE_BOOT_NAME} PRIVATE ${OS_MODULE_KERNEL_NAME} ${OS_LIBRARIES})
+set(OS_LIBRARIES ${OS_LIBRARIES} ${OS_MODULE_BOOT_NAME})
+
+########################################
+###
+### OS Module: Kernel
+# The operating system kernel
+# 1. Sets compiler and linker configuration
+# 2. Locate and build sources of the kernel
+# 3. Link boot object with the kernel
+# 4. copy compiled binary to the root of the cmake build directory.
+########################################
+# Define kernel module name
+set(OS_MODULE_KERNEL_NAME ${OS_KERNEL_NAME}-kernel)
+# Define custom compile flags for the kernel
+set(OS_MODULE_KERNEL_COMPILE_FLAGS)
+# Scan the src/kernel directory for source files (c/cpp)
+file(GLOB_RECURSE OS_MODULE_KERNEL_SOURCES
+        RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+        src/kernel/src/*.cpp
+        src/kernel/src/*.c
+        src/kernel/src/cpu/isr_asm.asm
+        src/kernel/src/cpu/descriptor_table.asm
+        src/kernel/src/memory/memory.c
+        src/kernel/src/memory/memutils.c
+        src/kernel/src/memory/malloc.c
+)
+# Set the output binary name
+set(OS_MODULE_KERNEL_BINARY kernel.bin)
+# Defines the linker location
+set(OS_MODULE_KERNEL_LINKER ${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${OS_ARCH_TARGET}/linker.ld)
+# Define custom linker flags for the kernel
+set(OS_MODULE_KERNEL_LINK_FLAGS "-T ${OS_MODULE_KERNEL_LINKER} ${CXX_LINKER_FLAGS}")
+# Add executable for the kernel.
+# Tutorial: the add_executable creates a 'executable target' in CMake, in contrast to add_library, which creates a library target.
+# A target is a recipe for building a component. For example, the uiaos-boot target is a recipe for building the boot source code.
+add_executable(${OS_MODULE_KERNEL_NAME} ${OS_MODULE_KERNEL_SOURCES})
+# Defines which include directories to usefor the kernel.
+target_include_directories(
+        ${OS_MODULE_KERNEL_NAME} PUBLIC
+        src/kernel/include
+)
+# Defines which libraries to link against. Linking is where the compiler "glues" together libraries and code pieces.
+target_link_libraries(
+        ${OS_MODULE_KERNEL_NAME} PUBLIC
+        ${OS_LIBRARIES}
+        ${OS_APPLICATIONS}
+)
+# Defines properties for the specific target. In our case, we have some custom linker flags and a custom output name
+set_target_properties(
+        ${OS_MODULE_KERNEL_NAME} PROPERTIES
+        OUTPUT_NAME ${OS_MODULE_KERNEL_BINARY}
+        LINK_FLAGS "${OS_MODULE_KERNEL_LINK_FLAGS}"
 )
 
 ########################################
-# OS-Image Target
+###
+### Grub
+# Configure a bootable image of our operating system
 ########################################
-set(ISO_DIR ${CMAKE_CURRENT_BINARY_DIR}/iso)
-set(LIMINE_CONFIG_DIR ${CMAKE_SOURCE_DIR})
-set(LIMINE_DIR /usr/local/limine)
-add_custom_target(
-	uiaos-create-image
-	COMMAND rm -rf ${ISO_DIR}
-	COMMAND mkdir -p ${ISO_DIR}
-	COMMAND cp -v $<TARGET_FILE:uiaos-kernel> 
-	 	${LIMINE_CONFIG_DIR}/limine.cfg ${LIMINE_DIR}/limine-bios.sys ${LIMINE_DIR}/limine-bios-cd.bin
-		${LIMINE_DIR}/limine-uefi-cd.bin ${ISO_DIR}/
-	COMMAND mkdir -p ${ISO_DIR}/EFI/BOOT
-	COMMAND cp -v ${LIMINE_DIR}/BOOTX64.EFI ${ISO_DIR}/EFI/BOOT/
-	COMMAND cp -v ${LIMINE_DIR}/BOOTIA32.EFI ${ISO_DIR}/EFI/BOOT/
-	COMMAND xorriso -as mkisofs -b limine-bios-cd.bin
-	 	-no-emul-boot -boot-load-size 4 -boot-info-table
-	 	--efi-boot limine-uefi-cd.bin
-	 	-efi-boot-part --efi-boot-image --protective-msdos-label
-	 	${ISO_DIR} -o ${CMAKE_CURRENT_BINARY_DIR}/kernel.iso
-	COMMAND ${LIMINE_DIR}/limine bios-install ${CMAKE_CURRENT_BINARY_DIR}/kernel.iso
-	#COMMAND sudo rm -rf ${ISO_DIR}
-	DEPENDS create-fat32-disk uiaos-kernel
-	VERBATIM
-)
+add_subdirectory(grub)
+
+add_custom_target(build)
+add_dependencies(build ${GRUB_TARGET})

@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/workspaces/2024-ikt218-osdev/build/27_Pat_test",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2024-ikt218-osdev/src/27_Pat_test/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/kernel.c.o -c /workspaces/2024-ikt218-osdev/src/27_Pat_test/src/kernel.c",
+  "file": "/workspaces/2024-ikt218-osdev/src/27_Pat_test/src/kernel.c"
+},
+{
+  "directory": "/workspaces/2024-ikt218-osdev/build/27_Pat_test",
+  "command": "/usr/local/bin/i686-elf-g++ -I/workspaces/2024-ikt218-osdev/src/27_Pat_test/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -g -Wno-unused-variable -Wno-unused-parameter -std=gnu++20 -o CMakeFiles/uiaos-kernel.dir/src/kernel.cpp.o -c /workspaces/2024-ikt218-osdev/src/27_Pat_test/src/kernel.cpp",
+  "file": "/workspaces/2024-ikt218-osdev/src/27_Pat_test/src/kernel.cpp"
+}
+]

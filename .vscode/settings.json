@@ -1,6 +1,6 @@
 {
-    "cmake.buildDirectory": "${workspaceFolder}/build/27_Pat",
-    "cmake.sourceDirectory": "${workspaceFolder}/src/27_Pat",
+    "cmake.buildDirectory": "${workspaceFolder}/build/27_Testp",
+    "cmake.sourceDirectory": "${workspaceFolder}/src/27_test",
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "cstddef": "cpp",
@@ -15,7 +15,6 @@
         "interrupts.h": "c",
         "memory.h": "c",
         "limits.h": "c"
-    },
-    "git.ignoreLimitWarning": true
+    }
 
 }
