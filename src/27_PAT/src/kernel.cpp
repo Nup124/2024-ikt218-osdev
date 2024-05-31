@@ -107,36 +107,26 @@ int kernel_main(){
 
 
     Song* songs[] = {
-
-        new Song({battlefield_1942_theme, sizeof(battlefield_1942_theme) / sizeof(Note)}),
-        new Song({starwars_theme, sizeof(starwars_theme) / sizeof(Note)}),
-        new Song({music_1, sizeof(music_1) / sizeof(Note)}),
-        new Song({music_6, sizeof(music_6) / sizeof(Note)}),
-        new Song({music_5, sizeof(music_5) / sizeof(Note)}),
-        new Song({music_4, sizeof(music_4) / sizeof(Note)}),
-        new Song({music_3, sizeof(music_3) / sizeof(Note)}),
-        new Song({music_2, sizeof(music_2) / sizeof(Note)}),
-        new Song({pokemon_theme, sizeof(pokemon_theme) / sizeof(Note)}),
-        new Song({runaway_theme, sizeof(runaway_theme) / sizeof(Note)})
+        new Song({starwars, sizeof(starwars) / sizeof(Note)}),
     };
     uint32_t n_songs = sizeof(songs) / sizeof(Song*);
 
     printf("WELCOME TO THE SIGMA OS\n\n");
-    printf("  SSSS  III  GGGGG   M   M   AAA      OOO    SSSS  \n");
-    printf(" S       I   G       MM MM  A   A    O   O  S    \n");
-    printf("  SSSS   I   G  GG   M M M  AAAAA -- O   O   SSSS  \n");
-    printf("      S  I   G   G   M   M  A   A    O   O       S \n");
-    printf("  SSSS  III  GGGGG   M   M  A   A     OOO    SSSS  \n");
+    printf("  PPPPP        A       TTTTTTT           OOOO     SSSS   \n");
+    printf(" P     P      A A         T             O    O   S       \n");
+    printf("  PPPPP      A   A        T      ---    O    O    SSSS   \n");
+    printf(" P          AAAAAAA       T             O    O        S  \n");
+    printf(" P         A       A      T              OOOO     SSSS   \n");
 
     // Create a song player and play each song
     SongPlayer* player = create_song_player();
     printf("Playing Song...\n");
-        player->play_song(songs[9]);
-    /*for(uint32_t i = 0; i < n_songs; i++) {
+       
+    for(uint32_t i = 0; i < n_songs; i++) {
         printf("Playing Song...\n");
         player->play_song(songs[i]);
         printf("Finished playing the song.\n");
-    }*/
+    }
 
     // Main loop
     printf("Kernel main loop\n");
